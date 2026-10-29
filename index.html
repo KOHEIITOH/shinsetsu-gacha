@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>しんせつガチャ｜1日ひとつ、だれかにやさしく</title>
+<meta name="description" content="ガチャをまわすと「ちいさな親切ミッション」が出てくる。やってみて、スタンプを集めて、やさしさのバトンをつなごう。">
+<meta name="theme-color" content="#FFF4E6">
+<meta property="og:title" content="しんせつガチャ">
+<meta property="og:description" content="ガチャをまわして、今日のちいさな親切をひとつ。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <h1 class="logo"><span class="logo-mark">🎁</span>しんせつガチャ</h1>
+    <div class="pts" id="ptsBadge" title="やさしさポイント">💛 <b id="ptsNum">0</b></div>
+  </header>
+
+  <!-- ガチャ画面 -->
+  <main id="view-gacha" class="view active">
+    <section class="today card-soft">
+      <div class="today-head">
+        <span>きょうのやさしさ</span>
+        <span class="today-count"><b id="todayNum">0</b> / 5</span>
+      </div>
+      <div class="hearts" id="hearts"></div>
+      <p class="today-note" id="todayNote">1日に5つの親切をすると、幸福感がぐっと上がるという研究があります。</p>
+    </section>
+
+    <section id="activeBox" class="active-box hidden">
+      <div class="active-label">いま挑戦中のミッション</div>
+      <div class="mission-card" id="activeCard"></div>
+      <div class="btn-row">
+        <button class="btn primary big" id="doneBtn">できた！</button>
+      </div>
+      <button class="btn link" id="rerollBtn">ほかのにする（のこり <span id="rerollLeft">3</span> 回）</button>
+      <div class="card-soft gentle">
+        <p>🍀 あせらなくて大丈夫。<br>今日のどこかで、ちょっとだけ思い出してね。</p>
+        <p class="small">相手に気づかれなくてもOK。「やさしくしよう」と思った時点で、もう半分達成です。</p>
+      </div>
+    </section>
+
+    <section id="machineBox" class="machine-box">
+      <div class="chips" id="chips" aria-label="ジャンルをえらぶ"></div>
+      <div class="machine" id="machine" aria-hidden="true">
+        <div class="dome">
+          <div class="dome-shine"></div>
+          <div class="capsules" id="capsules"></div>
+        </div>
+        <div class="body">
+          <div class="body-label">しんせつ</div>
+          <div class="handle" id="handle"><div class="handle-bar"></div></div>
+          <div class="slot"></div>
+          <div class="drop-capsule hidden" id="dropCapsule"><span class="cap-top"></span><span class="cap-bottom"></span></div>
+        </div>
+        <div class="legs"></div>
+      </div>
+      <button class="btn primary big spin" id="spinBtn">ガチャをまわす</button>
+      <p class="hint">出てきたミッションを、今日のどこかでやってみよう。</p>
+    </section>
+  </main>
+
+  <!-- ずかん -->
+  <main id="view-zukan" class="view">
+    <section class="card-soft stats" id="stats"></section>
+    <h2 class="sec-title">やさしさずかん</h2>
+    <p class="sec-sub">達成したミッションに色がつきます。ぜんぶ集められるかな？</p>
+    <div class="zukan" id="zukan"></div>
+  </main>
+
+  <!-- きろく -->
+  <main id="view-kiroku" class="view">
+    <h2 class="sec-title">やさしさのきろく</h2>
+    <p class="sec-sub">あなたがした親切と、そのときの気持ち。</p>
+    <div class="calendar" id="calendar"></div>
+    <ul class="log" id="log"></ul>
+    <div class="settings card-soft">
+      <label class="field">ニックネーム（バトンに表示）
+        <input id="nameInput" maxlength="12" placeholder="例：いっちゅう">
+      </label>
+      <p class="small">データはこの端末の中だけに保存されます。サーバーには何も送りません。</p>
+      <button class="btn ghost small-btn" id="resetBtn">記録をすべて消す</button>
+    </div>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="gacha"><span>🎰</span>ガチャ</button>
+    <button class="tab" data-view="zukan"><span>📖</span>ずかん</button>
+    <button class="tab" data-view="kiroku"><span>🗓️</span>きろく</button>
+  </nav>
+</div>
+
+<!-- ミッション結果 -->
+<div class="overlay hidden" id="resultOv">
+  <div class="sheet result-sheet">
+    <div class="burst" id="burst"></div>
+    <div class="rarity-banner" id="rarityBanner"></div>
+    <div class="mission-card big-card" id="resultCard"></div>
+    <div class="btn-row">
+      <button class="btn primary big" id="acceptBtn">やってみる！</button>
+    </div>
+    <button class="btn link" id="resultReroll">ほかのにする（のこり <span id="rerollLeft2">3</span> 回）</button>
+  </div>
+</div>
+
+<!-- 達成 -->
+<div class="overlay hidden" id="doneOv">
+  <div class="sheet">
+    <div class="stamp" id="stamp">やさしい<br><small id="stampDate"></small></div>
+    <h3 class="done-title">ナイスやさしさ！</h3>
+    <p class="done-sub" id="doneSub"></p>
+    <div class="mood">
+      <p>やってみて、どんな気持ち？</p>
+      <div class="moods" id="moods">
+        <button data-m="😊">😊<small>うれしい</small></button>
+        <button data-m="😌">😌<small>ほっこり</small></button>
+        <button data-m="😆">😆<small>たのしい</small></button>
+        <button data-m="😳">😳<small>てれた</small></button>
+        <button data-m="💪">💪<small>やりきった</small></button>
+      </div>
+    </div>
+    <input id="memoInput" class="memo" maxlength="60" placeholder="ひとことメモ（任意）例：店員さんが笑ってくれた">
+    <button class="btn primary big" id="saveDoneBtn">きろくする</button>
+  </div>
+</div>
+
+<!-- シェア -->
+<div class="overlay hidden" id="shareOv">
+  <div class="sheet">
+    <h3 class="done-title">やさしさのバトンをわたそう</h3>
+    <p class="done-sub">あなたがしたミッションを、友だちにも。<br>受け取った人は同じミッションに挑戦できます。</p>
+    <img id="shareImg" class="share-img" alt="シェア用カード">
+    <div class="btn-col">
+      <button class="btn primary big" id="shareBtn">バトンをわたす（リンクを共有）</button>
+      <button class="btn ghost" id="saveImgBtn">画像を保存</button>
+      <button class="btn link" id="closeShare">あとで</button>
+    </div>
+    <p class="small" id="copiedMsg"></p>
+  </div>
+</div>
+
+<!-- バトン受信 -->
+<div class="overlay hidden" id="batonOv">
+  <div class="sheet baton-sheet">
+    <div class="baton-icon">🏃‍♀️💛</div>
+    <h3 class="done-title" id="batonTitle"></h3>
+    <p class="done-sub">こんなちいさな親切をしたそうです。</p>
+    <div class="mission-card big-card" id="batonCard"></div>
+    <p class="done-sub next">次は、あなたの番。</p>
+    <div class="btn-col">
+      <button class="btn primary big" id="batonAccept">同じミッションに挑戦する</button>
+      <button class="btn ghost" id="batonGacha">自分でガチャをまわす</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+<script src="missions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
